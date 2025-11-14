@@ -1,6 +1,6 @@
 /*******************************************************************************
  *
- * Lab01: ascii_shapes.c -- prints ascii shapes on terminal.
+ * Lab01 (C99) : ascii_shapes.c -- Prints ascii shapes at the command line.
  *
  * Author: Christos Kaldis
  *
@@ -21,6 +21,7 @@ void print_right(int);
 void print_isosceles(int);
 
 int _check_index_pos(int, int);
+char _set_outer_ch(int);
 
 void _print_outer_line(char, int, int);
 void _print_inner_line(char, char, int);
@@ -48,6 +49,10 @@ enum position
     AFTER_MIDDLE,
     LAST
 };
+
+#ifndef DIGIT /* if DIGIT is true, the output changes */
+#define DIGIT 0
+#endif
 
 /******************************************************************************/
 
@@ -89,14 +94,14 @@ int main(void)
 }
 
 /******************************************************************************\
- *  Functions for reading input.                                              *
+ *  Functions used for reading input.                                         *
 \******************************************************************************/
 
 /**
  * @brief Prints the available shape options, reads an integer using
  * `_read_one_int(void)`.
  *
- * @return An integer of the selected shape.
+ * @returns An integer of the selected shape.
  */
 int get_user_choice(void)
 {
@@ -117,7 +122,7 @@ int get_user_choice(void)
  * @brief Asks for the size of shape, reads an integer using
  * `_read_one_int(void)`.
  *
- * @return An integer representing the size of the shape.
+ * @returns An integer representing the size of the shape.
  *
  * @note It doesn't check if the integer is positive.
  */
@@ -136,14 +141,14 @@ int get_shape_size(void)
  * @brief Reads an integer from terminal, ends the program in case of invalid
  * input.
  *
- * @return An integer.
+ * @returns An integer.
  */
 int _read_one_int(void)
 {
     int num;
 
     if (scanf("%d", &num) != 1) {
-        printf("Error: Invalid input\n");
+        perror("Invalid input");
         exit(EXIT_FAILURE);
     }
 
@@ -161,19 +166,24 @@ int _read_one_int(void)
  */
 void print_square(int size)
 {
+    char ch;
+    const char inner_ch = '~';
+    const char center_ch = '*';
+
     for (int i = 0; i < size; ++i) {
+        ch = _set_outer_ch(i);
         switch (_check_index_pos(i, size))
         {
         case FIRST: /* first and last line are identical. */
         case LAST:
-            _print_outer_line('+', size, 1);
+            _print_outer_line(ch, size, 1);
             break;
         case MIDDLE_EVEN: /* fall through. */
         case MIDDLE:
-            _print_middle_line('+', '~', '*', size);
+            _print_middle_line(ch, inner_ch, center_ch, size);
             break;
-        default: /* Every other line is inner shape line and the same. */
-            _print_inner_line('+', '~', size);
+        default: /* Every other line is an inner shape line. */
+            _print_inner_line(ch, inner_ch, size);
             break;
         }
     }
@@ -188,38 +198,44 @@ void print_square(int size)
  */
 void print_rhombus(int size)
 {
+    char ch;
+    const char inner_ch = '~';
+    const char center_ch = '*';
+    const char outer_ch = '_';
+
     /* the length of chars a line has inside the shape. */
     int len_in_shape = 1;
     /* the length of chars a line has outside the shape. */
     int len_out_shape = (size % 2 != 0) ? size / 2 : size / 2 - 1;
 
     for (int i = 0; i < size; ++i) {
+        ch = _set_outer_ch(i);
         switch (_check_index_pos(i, size))
         {
         case LAST: /* first and last line are identical. */
         case FIRST: /* length increases from first to second line. */
-            _print_outer_line('_', len_out_shape--, 0);
-            _print_outer_line('+', len_in_shape, 1);
+            _print_outer_line(outer_ch, len_out_shape--, 0);
+            _print_outer_line(ch, len_in_shape, 1);
             len_in_shape += 2;
             break;
         case SECOND: /* it is before middle so fall through. */
         case BEFORE_MIDDLE: /* ln_out decreases and ln_in increases before m. */
-            _print_outer_line('_', len_out_shape--, 0);
-            _print_inner_line('+', '~', len_in_shape);
+            _print_outer_line(outer_ch, len_out_shape--, 0);
+            _print_inner_line(ch, inner_ch, len_in_shape);
             len_in_shape += 2;
             break;
         case MIDDLE_EVEN: /* prints another middle before the actual. */
-            _print_middle_line('+', '~', '*', len_in_shape);
+            _print_middle_line(ch, inner_ch, center_ch, len_in_shape);
             break;
         case MIDDLE: /* length decreases (opposite pattern above). */
-            _print_middle_line('+', '~', '*', len_in_shape);
+            _print_middle_line(ch, inner_ch, center_ch, len_in_shape);
             len_in_shape -= 2;
             len_out_shape++;
             break;
-	/* the rest lines after the middle and before last line. */
+	    /* the rest lines are after the middle and before last line. */
         case AFTER_MIDDLE:
-            _print_outer_line('_', len_out_shape++, 0);
-            _print_inner_line('+', '~', len_in_shape);
+            _print_outer_line(outer_ch, len_out_shape++, 0);
+            _print_inner_line(ch, inner_ch, len_in_shape);
             len_in_shape -= 2;
             break;
         }
@@ -235,16 +251,20 @@ void print_rhombus(int size)
  */
 void print_right(int size)
 {
+    char ch;
+    const char inner_ch = '~';
+
     for (int i = 0; i < size; ++i) {
+        ch = _set_outer_ch(i);
         switch (_check_index_pos(i, size))
         {
-        case FIRST: /* is outer with length 1. */
-        case SECOND: /* is outer because it has length 2.*/
-        case LAST: /* is also outer with length equal the number of rows. */
-            _print_outer_line('+', i + 1, 1);
+        case FIRST: /* is outer with length 1, */
+        case SECOND: /* it is outer because it has length 2,*/
+        case LAST: /* it is also outer with length equal the number of rows. */
+            _print_outer_line(ch, i + 1, 1);
             break;
         default: /* the rest of the lines are inner and there is no middle. */
-            _print_inner_line('+', '-', i + 1);
+            _print_inner_line(ch, inner_ch, i + 1);
             break;
         }
     }
@@ -259,22 +279,27 @@ void print_right(int size)
  */
 void print_isosceles(int size)
 {
+    char ch;
+    const char inner_ch = '-';
+    const char outer_ch = ' ';
+
     /* the length of chars a line has inside the shape. */
     int len_in_shape = 1;
     /* the length of chars a line has outside the shape. */
     int len_out_shape = size - 1;
 
     for (int i = 0; i < size; ++i) {
+        ch = _set_outer_ch(i);
         switch (_check_index_pos(i, size))
         {
-        case FIRST: /* first line is outer with length size. */
+        case FIRST: /* first line is outer with length size, fall through */
         case LAST: /* last line is also outer with bigger size. */
-            _print_outer_line(' ', len_out_shape--, 0);
-            _print_outer_line('+', len_in_shape, 1);
+            _print_outer_line(outer_ch, len_out_shape--, 0);
+            _print_outer_line(ch, len_in_shape, 1);
             break;
         default: /* all the other lines are inner and there is no middle */
-            _print_outer_line(' ', len_out_shape--, 0);
-            _print_inner_line('+', '~', len_in_shape);
+            _print_outer_line(outer_ch, len_out_shape--, 0);
+            _print_inner_line(ch, inner_ch, len_in_shape);
             break;
         }
         /* in every iteration, length inside the shape becomes bigger. */
@@ -299,11 +324,6 @@ int _check_index_pos(int index, int length)
     /* FIRST and LAST are needed for every shape. */
     if (index == 0) {
         pos = FIRST;
-    /* SECOND is needed for the right triangle,
-        as a result it is used in rhombus in order to
-        work properly. Using default case avoids further usage. */
-    } else if (index == 1) {
-        pos = SECOND;
     /* FIRST and LAST are also used in every line. */
     } else if (index == length - 1) {
         pos = LAST;
@@ -313,6 +333,11 @@ int _check_index_pos(int index, int length)
     /* MIDDLE_EVEN is a duplicated middle line for even sizes. */
     } else if (length % 2 == 0 && length / 2 == index + 1) {
         pos = MIDDLE_EVEN;
+    /* SECOND is needed for the right triangle,
+        as a result it is used in rhombus in order to
+        work properly. Using default case avoids further usage. */
+    } else if (index == 1) {
+        pos = SECOND;
     /* AFTER_MIDDLE and BEFORE_MIDDLE are used on rhombus. */
     } else if (index > length / 2) {
         pos = AFTER_MIDDLE;
@@ -323,8 +348,21 @@ int _check_index_pos(int index, int length)
     return pos;
 }
 
+/**
+ * @brief Sets the proper char to print shapes with.
+ *
+ * @param num The current line of print loop.
+ * 
+ * @returns If DIGIT is true it returns the last digit of the current line
+ * else the character `'+'`. 
+ */
+char _set_outer_ch(int num)
+{
+    return (DIGIT) ? (num % 10 + '0') : '+';
+}
+
 /******************************************************************************\
- * Functions for printing the different type of lines.                        *
+ * Functions used for printing the different type of lines.                   *
 \******************************************************************************/
 
 /**
@@ -357,7 +395,7 @@ void _print_inner_line(char ch_out, char ch_in, int length)
     for (int i = 0; i < length; ++i) {
         switch (_check_index_pos(i, length))
         {
-        case FIRST: /* first and last char are the same. */
+        case FIRST: /* first and last char are the same, fall through */
         case LAST:
             putc(ch_out, stdout);
             break;
@@ -372,7 +410,7 @@ void _print_inner_line(char ch_out, char ch_in, int length)
 }
 
 /**
- * @brief Prints a line of three given chars and length.
+ * @brief Prints a line of three given chars and a length.
  *
  * @param ch_out The char on the edges of the line.
  * @param ch_in The char on the inside of the line.
@@ -384,12 +422,12 @@ void _print_middle_line(char ch_out, char ch_in, char ch_m, int length)
     for (int i = 0; i < length; ++i) {
         switch (_check_index_pos(i, length))
         {
-        case FIRST: /* first and last char are the same. */
+        case FIRST: /* first and last char are the same, fall through */
         case LAST:
             putc(ch_out, stdout);
             break;
-        case MIDDLE: /* middle is the same as middle for even length. */
-        case MIDDLE_EVEN:
+        case MIDDLE_EVEN: /* fall through */
+        case MIDDLE:
             putc(ch_m, stdout);
             break;
         default: /* the rest chars are inside the line. */
