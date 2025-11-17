@@ -1,6 +1,6 @@
 /*******************************************************************************
  *
- * Lab02: metal_plate.c -- Calculates the temperature of a metal plate.
+ * Lab02 (C99): metal_plate.c -- Calculates the temperature of a metal plate.
  *
  * Author: Christos Kaldis
  *
@@ -56,12 +56,15 @@ int main(void)
     init_array(tmp_arr, UP_SIDE, RIGHT_SIDE, BOTTOM_SIDE, LEFT_SIDE, INSIDE);
 
     do {
+        /* calculates the temperature for each step. */
         delta_temp = calc_array_temp(plate_temp, tmp_arr);
+        /* copies the new temperature from the second array. */
         memcpy(plate_temp, tmp_arr, sizeof(double) * N * M);
         seconds++;
     } while (delta_temp > THRESHOLD);
 
-    printf("Permanent state after %d (s) for threshold: %f\n\n", seconds, THRESHOLD);
+    printf("Permanent state after %d (s) for threshold: %f\n\n",
+        seconds, THRESHOLD);
     print_array(plate_temp);
 
     calc_norm_array(plate_temp, norm_plate);
@@ -79,13 +82,13 @@ int main(void)
 
 /**
  * @brief Sets the initial values of the plate.
- * 
+ *
  * @param array[N][M] The array with the initial temperature.
  * @param up The temperature of the upper side.
  * @param right The temperature of the right side.
  * @param bottom The temperature of the bottom side.
  * @param left The temperature of the left side.
- * @param in The temperature inside the plate. 
+ * @param in The temperature inside the plate.
  */
 void init_array(double array[N][M],
     double up, double right, double bottom, double left, double in)
@@ -106,7 +109,7 @@ void init_array(double array[N][M],
 
 /**
  * @brief Initializes the temperature of a certain row (line).
- * 
+ *
  * @param array[N][M] The array with the initial temperature.
  * @param row_index The index of the row (line).
  * @param first The value of the left side cell.
@@ -135,7 +138,7 @@ void _init_array_ln(double array[N][M], int row_index,
 
 /**
  * @brief Prints an array of doubles.
- * 
+ *
  * @param array[N][M] The array to be printed.
  */
 void print_array(const double array[N][M])
@@ -153,7 +156,7 @@ void print_array(const double array[N][M])
 
 /**
  * @brief Prints an array of integers.
- * 
+ *
  * @param norm_array[N][M] The array to be printed.
  */
 void print_norm_array(const int norm_array[N][M])
@@ -171,7 +174,7 @@ void print_norm_array(const int norm_array[N][M])
 
 /**
  * @brief Prints a horizontal histogram.
- * 
+ *
  * @param histogram[10] The histogram to be printed.
  */
 void print_histogram(const int histogram[10])
@@ -194,10 +197,10 @@ void print_histogram(const int histogram[10])
 
 /**
  * @brief Calculates the temperature of the plate in the next second.
- * 
+ *
  * @param src_array[N][M] The temperature at the current state.
  * @param dest_array[N][M] The calculated temperature is stored here.
- * 
+ *
  * @returns The sum of the absolute difference of all cells between those
  * two states.
  */
@@ -230,11 +233,11 @@ double calc_array_temp(const double src_array[N][M],
 /**
  * @brief Calculates the sum of the absolute difference for each cell,
  * between two arrays.
- * 
+ *
  * @param arr_first[N][M] The first array.
  * @param arr_second[N][M] The second array.
- * 
- * @returns The sum of the absolute difference. 
+ *
+ * @returns The sum of the absolute difference.
  */
 double _sum_delta_temp(const double arr_first[N][M],
     const double arr_second[N][M])
@@ -257,7 +260,7 @@ double _sum_delta_temp(const double arr_first[N][M],
 
 /**
  * @brief Normalizes an array.
- * 
+ *
  * @param array[N][M] The array for normalization.
  * @param norm_array[N][M] The normalized array is stored here.
  */
@@ -278,7 +281,7 @@ void calc_norm_array(const double array[N][M], int norm_array[N][M])
 
     for (int i = 0; i < N; ++i) {
         for (int j = 0; j < M; ++j) {
-            /* 
+            /*
              * Limit is the lower value each cell can take
              * if the normalized value is equal to the current value.
              */
@@ -302,10 +305,10 @@ void calc_norm_array(const double array[N][M], int norm_array[N][M])
 
 /**
  * @brief Finds the min and the max of an array.
- * 
+ *
  * @param array[N][M] The array where searches min and max values.
  * @param min A pointer to the array's minimum value.
- * @param max A pointer to the array's maximum value. 
+ * @param max A pointer to the array's maximum value.
  */
 void _min_max_array(const double array[N][M], double *min, double *max)
 {
@@ -316,11 +319,8 @@ void _min_max_array(const double array[N][M], double *min, double *max)
     for (int i = 0; i < N; ++i) {
         for (int j = 0; j < M; ++j) {
             cur_cell = array[i][j];
-            if (cur_cell > *max) {
-                *max = cur_cell;
-            } else if (cur_cell < *min) {
-                *min = cur_cell;
-            }
+            *max = fmax(*max, cur_cell);
+            *min = fmin(*min, cur_cell);
         }
     }
 
@@ -329,10 +329,10 @@ void _min_max_array(const double array[N][M], double *min, double *max)
 
 /**
  * @brief Calculates the histogram of a normalized array.
- * 
+ *
  * @param norm_array[N][M] An array of integers with values from 0 to 9.
  * @param histogram[10] An array with the number of times each value occurred.
- * 
+ *
  * @note Make sure that `norm_array` has proper values before call.
  */
 void calc_histogram(const int norm_array[N][M], int histogram[10])
